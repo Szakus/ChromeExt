@@ -1,0 +1,148 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <style>
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    body { font-family: system-ui, sans-serif; width: 320px; background: #1a1a2e; color: #e0e0e0; }
+
+    .header {
+      background: #16213e;
+      padding: 14px 16px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      border-bottom: 1px solid #0f3460;
+    }
+    .header h1 { font-size: 15px; font-weight: 600; color: #fff; }
+
+    .toggle-wrap { display: flex; align-items: center; gap: 8px; font-size: 12px; }
+    .toggle { position: relative; width: 36px; height: 20px; }
+    .toggle input { opacity: 0; width: 0; height: 0; }
+    .slider {
+      position: absolute; inset: 0; background: #444; border-radius: 20px; cursor: pointer;
+      transition: .2s;
+    }
+    .slider:before {
+      content: ""; position: absolute; width: 14px; height: 14px;
+      left: 3px; top: 3px; background: #fff; border-radius: 50%; transition: .2s;
+    }
+    input:checked + .slider { background: #e94560; }
+    input:checked + .slider:before { transform: translateX(16px); }
+
+    .section { padding: 12px 16px; border-bottom: 1px solid #0f3460; }
+    .section label { display: block; font-size: 11px; color: #888; margin-bottom: 5px; text-transform: uppercase; letter-spacing: .5px; }
+
+    .row { display: flex; align-items: center; gap: 8px; }
+    input[type="number"], select, input[type="text"] {
+      background: #0f3460; border: 1px solid #16213e; color: #e0e0e0;
+      padding: 5px 8px; border-radius: 4px; font-size: 13px; width: 100%;
+    }
+    input[type="number"] { width: 70px; }
+    .unit { font-size: 12px; color: #888; white-space: nowrap; }
+
+    .whitelist-row { display: flex; gap: 6px; margin-bottom: 6px; }
+    .whitelist-row input { flex: 1; }
+    .btn-small {
+      background: #e94560; border: none; color: #fff; padding: 4px 8px;
+      border-radius: 4px; cursor: pointer; font-size: 12px;
+    }
+    .tags { display: flex; flex-wrap: wrap; gap: 4px; min-height: 8px; }
+    .tag {
+      background: #0f3460; border-radius: 3px; padding: 2px 6px; font-size: 11px;
+      display: flex; align-items: center; gap: 4px;
+    }
+    .tag span { cursor: pointer; color: #e94560; font-weight: bold; }
+
+    .stats { padding: 10px 16px; font-size: 12px; color: #888; display: flex; justify-content: space-between; }
+    .stats b { color: #e0e0e0; }
+
+    .actions { padding: 10px 16px; display: flex; gap: 8px; }
+    .btn {
+      flex: 1; padding: 7px; border: none; border-radius: 5px;
+      font-size: 12px; cursor: pointer; font-weight: 600;
+    }
+    .btn-primary { background: #e94560; color: #fff; }
+    .btn-secondary { background: #0f3460; color: #e0e0e0; }
+    .btn-debug { background: #2a1a00; color: #f0a500; border: 1px solid #f0a500; }
+    .btn:hover { opacity: .85; }
+
+    #archive-section { display: none; }
+    #archive-section.visible { display: block; }
+    .archive-list { max-height: 180px; overflow-y: auto; }
+    .archive-item {
+      padding: 6px 16px; display: flex; align-items: center; gap: 8px;
+      border-bottom: 1px solid #0f3460; font-size: 12px;
+    }
+    .archive-item img { width: 14px; height: 14px; }
+    .archive-item a { color: #e0e0e0; text-decoration: none; flex: 1; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+    .archive-item a:hover { color: #e94560; }
+    .archive-item .time { color: #555; font-size: 10px; white-space: nowrap; }
+    .archive-header { padding: 8px 16px 4px; display: flex; justify-content: space-between; align-items: center; }
+    .archive-header span { font-size: 11px; color: #888; text-transform: uppercase; }
+  </style>
+</head>
+<body>
+  <div class="header">
+    <h1>Auto Tab Cleaner</h1>
+    <div class="toggle-wrap">
+      <span id="status-label">ON</span>
+      <label class="toggle">
+        <input type="checkbox" id="enabled">
+        <span class="slider"></span>
+      </label>
+    </div>
+  </div>
+
+  <div class="section">
+    <label>Close tabs inactive for</label>
+    <div class="row">
+      <input type="number" id="maxAge" min="1" max="9999" value="60">
+      <span class="unit">minutes</span>
+    </div>
+  </div>
+
+  <div class="section">
+    <label>Action</label>
+    <select id="action">
+      <option value="close">Close (no history)</option>
+      <option value="archive">Archive (keep list)</option>
+    </select>
+  </div>
+
+  <div class="section">
+    <label>Whitelist (never close)</label>
+    <div class="whitelist-row">
+      <input type="text" id="wl-input" placeholder="e.g. github.com">
+      <button class="btn-small" id="wl-add">Add</button>
+    </div>
+    <div class="tags" id="wl-tags"></div>
+  </div>
+
+  <div class="stats">
+    <span>Open tabs: <b id="tab-count">-</b></span>
+    <span>Archived: <b id="archive-count">-</b></span>
+  </div>
+
+  <div class="actions">
+    <button class="btn btn-primary" id="run-now">Clean inactive</button>
+    <button class="btn btn-secondary" id="show-archive">View archive</button>
+  </div>
+  <div class="actions">
+    <button class="btn btn-debug" id="clean-all">Clean all (skip pinned &amp; grouped)</button>
+  </div>
+
+  <div id="archive-section">
+    <div class="archive-header">
+      <span>Archived tabs</span>
+      <button class="btn-small" id="clear-archive">Clear all</button>
+    </div>
+    <div style="padding: 6px 16px;">
+      <input type="text" id="archive-search" placeholder="Search..." style="width:100%;font-size:12px;">
+    </div>
+    <div class="archive-list" id="archive-list"></div>
+  </div>
+
+  <script src="popup.js"></script>
+</body>
+</html>
