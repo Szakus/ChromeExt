@@ -4,6 +4,11 @@
 
 Automatically closes or archives browser tabs that have been inactive for a configurable period of time.
 
+## Screenshot
+
+![Auto Tab Cleaner popup](docs/screenshot.jpg)
+
+
 ### Installation
 
 **Option A - from ZIP (easiest)**
