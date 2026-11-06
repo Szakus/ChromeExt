@@ -17,14 +17,29 @@ const DEFAULT_CSS_GLOBAL = `/* Applied on all pages of your Jira domain */
 #worklogForm > div:nth-child(14) > div:nth-child(8) { display: none; }`;
 
 const DEFAULT_CSS_CREATE = `/* Applied only on /secure/CreateIssue */
+.description { display: none; }
+#issue-create > div.form-body > div.field-group.aui-field-componentspicker.frother-control-renderer { display: none; }
+#issue-create > div.form-body > div.field-group.aui-field-versionspicker.frother-control-renderer { display: none; }
+#issue-create > div.form-body > div.field-group.issue-link-edit { display: none; }
 #issue-create > div.form-body > div:nth-child(13) { display: none; }
 #issue-create > div.form-body > div:nth-child(14) { display: none; }
 #issue-create > div.form-body > div.jpo-baseline-start { display: none; }
 #issue-create > div.form-body > div.jpo-baseline-end { display: none; }
+#issue-create > div.form-body > div:nth-child(16) { display: none; }
+#issue-create > div.form-body > div:nth-child(23) { display: none; }
+#issue-create > div.form-body > div:nth-child(24) { display: none; }
+#issue-create > div.form-body > div:nth-child(25) { display: none; }
+#issue-create > div.form-body > div:nth-child(27) { display: none; }
+#issue-create > div.form-body > div:nth-child(28) { display: none; }
+#issue-create > div.form-body > div:nth-child(29) { display: none; }
 #issue-create > div.form-body > div:nth-child(32) { display: none; }
 #issue-create > div.form-body > div:nth-child(33) { display: none; }
 #issue-create > div.form-body > div:nth-child(34) { display: none; }
 #issue-create > div.form-body > div:nth-child(35) { display: none; }
 #issue-create > div.form-body > div:nth-child(36) { display: none; }
 #issue-create > div.form-body > div:nth-child(37) { display: none; }
-#issue-create > div.form-body > div:nth-child(38) { display: none; }`;
+#issue-create > div.form-body > div:nth-child(38) { display: none; }
+#customfield_29700 { height: 50px; }
+#content>.aui-page-header .aui-page-header-inner,
+#content>main>.aui-page-header .aui-page-header-inner,
+#content>section>.aui-page-header .aui-page-header-inner { padding: 0 !important; }`;
