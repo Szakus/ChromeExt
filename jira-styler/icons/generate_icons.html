@@ -1,0 +1,52 @@
+<!DOCTYPE html>
+<html>
+<body>
+<canvas id="c16" width="16" height="16"></canvas>
+<canvas id="c48" width="48" height="48"></canvas>
+<script>
+function draw(canvas) {
+  const s = canvas.width;
+  const ctx = canvas.getContext("2d");
+
+  // Jira-blue background
+  ctx.fillStyle = "#0052cc";
+  ctx.beginPath();
+  ctx.roundRect(0, 0, s, s, s * 0.2);
+  ctx.fill();
+
+  // "J" letter
+  ctx.fillStyle = "#fff";
+  ctx.font = `bold ${s * 0.62}px system-ui, sans-serif`;
+  ctx.textAlign = "center";
+  ctx.textBaseline = "middle";
+  ctx.fillText("J", s * 0.42, s * 0.48);
+
+  // small CSS badge bottom-right: curly brace { }
+  const bx = s * 0.72, by = s * 0.72, br = s * 0.22;
+  ctx.fillStyle = "#4fc3f7";
+  ctx.beginPath();
+  ctx.arc(bx, by, br, 0, Math.PI * 2);
+  ctx.fill();
+
+  ctx.fillStyle = "#0052cc";
+  ctx.font = `bold ${br * 1.3}px monospace`;
+  ctx.textAlign = "center";
+  ctx.textBaseline = "middle";
+  ctx.fillText("{}", bx, by);
+}
+
+["c16","c48"].forEach(id => draw(document.getElementById(id)));
+
+document.querySelectorAll("canvas").forEach(c => {
+  const a = document.createElement("a");
+  a.download = `icon${c.width}.png`;
+  a.href = c.toDataURL();
+  a.textContent = `Download icon${c.width}.png`;
+  a.style.display = "block";
+  a.style.margin = "8px";
+  a.style.fontSize = "16px";
+  document.body.appendChild(a);
+});
+</script>
+</body>
+</html>

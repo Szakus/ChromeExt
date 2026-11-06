@@ -1,0 +1,126 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <style>
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    body { font-family: system-ui, sans-serif; width: 420px; background: #1a1a2e; color: #e0e0e0; }
+
+    .header {
+      background: #16213e;
+      padding: 14px 16px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      border-bottom: 1px solid #0f3460;
+    }
+    .header h1 { font-size: 15px; font-weight: 600; color: #fff; }
+
+    .toggle-wrap { display: flex; align-items: center; gap: 8px; font-size: 12px; }
+    .toggle { position: relative; width: 36px; height: 20px; }
+    .toggle input { opacity: 0; width: 0; height: 0; }
+    .slider {
+      position: absolute; inset: 0; background: #444; border-radius: 20px; cursor: pointer; transition: .2s;
+    }
+    .slider:before {
+      content: ""; position: absolute; width: 14px; height: 14px;
+      left: 3px; top: 3px; background: #fff; border-radius: 50%; transition: .2s;
+    }
+    input:checked + .slider { background: #e94560; }
+    input:checked + .slider:before { transform: translateX(16px); }
+
+    .section { padding: 12px 16px; border-bottom: 1px solid #0f3460; }
+    .section label { display: block; font-size: 11px; color: #888; margin-bottom: 5px; text-transform: uppercase; letter-spacing: .5px; }
+    .section .hint { font-size: 10px; color: #555; margin-top: 4px; }
+
+    input[type="text"] {
+      background: #0f3460; border: 1px solid #16213e; color: #e0e0e0;
+      padding: 6px 8px; border-radius: 4px; font-size: 13px; width: 100%;
+    }
+    input[type="text"]:focus { outline: none; border-color: #e94560; }
+
+    .tab-bar {
+      display: flex;
+      border-bottom: 1px solid #0f3460;
+    }
+    .tab-btn {
+      flex: 1; padding: 8px; background: none; border: none; color: #888;
+      font-size: 11px; cursor: pointer; text-transform: uppercase; letter-spacing: .5px;
+      border-bottom: 2px solid transparent; transition: .15s;
+    }
+    .tab-btn.active { color: #e94560; border-bottom-color: #e94560; }
+    .tab-btn:hover { color: #e0e0e0; }
+
+    .tab-panel { display: none; }
+    .tab-panel.active { display: block; }
+
+    .css-wrap { padding: 10px 16px; }
+    textarea {
+      width: 100%; height: 220px; resize: vertical;
+      background: #0f3460; border: 1px solid #16213e; color: #e0e0e0;
+      padding: 8px; border-radius: 4px; font-size: 11px; font-family: monospace;
+      line-height: 1.5;
+    }
+    textarea:focus { outline: none; border-color: #e94560; }
+
+    .actions { padding: 10px 16px; display: flex; gap: 8px; border-top: 1px solid #0f3460; }
+    .btn {
+      flex: 1; padding: 7px; border: none; border-radius: 5px;
+      font-size: 12px; cursor: pointer; font-weight: 600;
+    }
+    .btn-primary { background: #e94560; color: #fff; }
+    .btn-secondary { background: #0f3460; color: #e0e0e0; }
+    .btn:hover { opacity: .85; }
+
+    #save-status {
+      font-size: 11px; color: #2e7d52; padding: 0 16px 8px;
+      min-height: 18px; text-align: right;
+    }
+  </style>
+</head>
+<body>
+  <div class="header">
+    <h1>Jira Styler</h1>
+    <div class="toggle-wrap">
+      <span id="status-label">ON</span>
+      <label class="toggle">
+        <input type="checkbox" id="enabled">
+        <span class="slider"></span>
+      </label>
+    </div>
+  </div>
+
+  <div class="section">
+    <label>Jira domain</label>
+    <input type="text" id="domain" placeholder="e.g. jira.yourcompany.net">
+    <div class="hint">CSS is injected on all pages whose URL contains this domain.</div>
+  </div>
+
+  <div class="tab-bar">
+    <button class="tab-btn active" data-tab="global">Global CSS</button>
+    <button class="tab-btn" data-tab="create">Create Issue CSS</button>
+  </div>
+
+  <div class="tab-panel active" id="tab-global">
+    <div class="css-wrap">
+      <textarea id="cssGlobal" spellcheck="false"></textarea>
+    </div>
+  </div>
+
+  <div class="tab-panel" id="tab-create">
+    <div class="css-wrap">
+      <textarea id="cssCreate" spellcheck="false"></textarea>
+    </div>
+  </div>
+
+  <div id="save-status"></div>
+
+  <div class="actions">
+    <button class="btn btn-secondary" id="btn-reset">Reset to defaults</button>
+    <button class="btn btn-primary" id="btn-save">Save</button>
+  </div>
+
+  <script src="defaults.js"></script>
+  <script src="popup.js"></script>
+</body>
+</html>
