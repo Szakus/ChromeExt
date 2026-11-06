@@ -23,12 +23,13 @@ async function injectStyles(tabId, url) {
   chrome.scripting.executeScript({
     target: { tabId },
     func: injectAll,
-    args: [s.buckets || []]
+    args: [s.buckets || [], s.sprints || []]
   }).catch(() => {});
 }
 
-function injectAll(buckets) {
+function injectAll(buckets, sprints) {
   const BUCKETS = Array.isArray(buckets) && buckets.length ? buckets : [];
+  const SPRINTS = Array.isArray(sprints) && sprints.length ? sprints : [];
 
   const CAT_COLORS = {
     SmallChanges: '#2e7d52',
@@ -64,6 +65,8 @@ function injectAll(buckets) {
     }
 
     injectEpicHelper();
+    injectSprintHelper();
+    injectStoryPointsHelper();
   }
 
   function injectEpicHelper() {
@@ -204,6 +207,76 @@ function injectAll(buckets) {
 
     // Insert after the hidden select, same pattern as "Assign to me" button
     hiddenSelect.insertAdjacentElement('afterend', btn);
+  }
+
+  function injectSprintHelper() {
+    if (!SPRINTS.length) return;
+    const hiddenSelect = document.getElementById('customfield_16100');
+    if (!hiddenSelect || hiddenSelect.__sprintHelperDone) return;
+    hiddenSelect.__sprintHelperDone = true;
+
+    const wrap = document.createElement('span');
+    wrap.style.cssText = 'margin-left:8px;vertical-align:middle;';
+
+    SPRINTS.forEach(sprint => {
+      const btn = document.createElement('a');
+      btn.className = 'aui-button aui-button-link';
+      btn.style.cssText = 'margin-right:6px;';
+      btn.textContent = sprint;
+
+      btn.addEventListener('click', (e) => {
+        e.preventDefault();
+        const field = document.getElementById('customfield_16100-field');
+        if (!field) return;
+        field.value = sprint;
+        field.dispatchEvent(new Event('input', { bubbles: true }));
+        field.dispatchEvent(new KeyboardEvent('keyup', { bubbles: true }));
+        field.focus();
+
+        let attempts = 0;
+        const timer = setInterval(() => {
+          attempts++;
+          const links = document.querySelectorAll('#customfield_16100-suggestions a[role="option"]');
+          for (const link of links) {
+            if (link.textContent.trim().startsWith(sprint)) {
+              link.click();
+              clearInterval(timer);
+              return;
+            }
+          }
+          if (attempts > 30) clearInterval(timer);
+        }, 100);
+      });
+
+      wrap.appendChild(btn);
+    });
+
+    hiddenSelect.insertAdjacentElement('afterend', wrap);
+  }
+
+  function injectStoryPointsHelper() {
+    const field = document.getElementById('customfield_46343');
+    if (!field || field.__spHelperDone) return;
+    field.__spHelperDone = true;
+
+    const wrap = document.createElement('span');
+    wrap.style.cssText = 'margin-left:8px;vertical-align:middle;';
+
+    [['XS', 1], ['S', 2], ['M', 3], ['L', 5], ['XL', 8]].forEach(([label, val]) => {
+      const btn = document.createElement('a');
+      btn.className = 'aui-button aui-button-link';
+      btn.style.cssText = 'margin-right:4px;';
+      btn.textContent = label;
+      btn.title = val;
+      btn.addEventListener('click', (e) => {
+        e.preventDefault();
+        field.value = val;
+        field.dispatchEvent(new Event('change', { bubbles: true }));
+      });
+      wrap.appendChild(btn);
+    });
+
+    field.insertAdjacentElement('afterend', wrap);
   }
 
   // Run immediately if form already in DOM

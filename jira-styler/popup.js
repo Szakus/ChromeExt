@@ -9,6 +9,7 @@ async function load() {
   document.getElementById("cssGlobal").value = s.cssGlobal ?? DEFAULT_CSS_GLOBAL;
   document.getElementById("cssCreate").value = s.cssCreate ?? DEFAULT_CSS_CREATE;
   document.getElementById("bucketsJson").value = s.buckets ? JSON.stringify(s.buckets, null, 2) : "";
+  document.getElementById("sprintsText").value = (s.sprints || []).join("\n");
 }
 
 async function save(silent = false) {
@@ -38,6 +39,8 @@ async function save(silent = false) {
     cssGlobal: document.getElementById("cssGlobal").value,
     cssCreate: document.getElementById("cssCreate").value,
     buckets,
+    sprints: document.getElementById("sprintsText").value
+      .split("\n").map(s => s.trim()).filter(Boolean),
   };
   await chrome.storage.local.set({ settings: updated });
 

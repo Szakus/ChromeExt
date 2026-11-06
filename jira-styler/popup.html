@@ -100,6 +100,7 @@
     <button class="tab-btn active" data-tab="global">Global CSS</button>
     <button class="tab-btn" data-tab="create">Create Issue CSS</button>
     <button class="tab-btn" data-tab="epics">Epicki</button>
+    <button class="tab-btn" data-tab="sprints">Sprinty</button>
   </div>
 
   <div class="tab-panel active" id="tab-global">
@@ -121,6 +122,15 @@
       </div>
       <textarea id="bucketsJson" spellcheck="false" style="height:260px;"></textarea>
       <div id="buckets-error" style="font-size:11px;color:#e94560;margin-top:4px;min-height:16px;"></div>
+    </div>
+  </div>
+
+  <div class="tab-panel" id="tab-sprints">
+    <div class="css-wrap">
+      <div style="font-size:11px;color:#888;margin-bottom:6px;">
+        Jeden sprint per linia. Kliknięcie wklei sprint do pola i wybierze go z dropdown.
+      </div>
+      <textarea id="sprintsText" spellcheck="false" style="height:200px;" placeholder="pl37&#10;pl38&#10;RUN_pl37"></textarea>
     </div>
   </div>
 

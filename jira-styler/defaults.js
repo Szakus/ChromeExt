@@ -1,5 +1,12 @@
 const DEFAULT_CSS_GLOBAL = `/* Applied on all pages of your Jira domain */
 #footer { display: none; }
+#customfield_46343 { max-width: 400px !important; }
+.field-group { margin-bottom: 6px !important; }
+form.aui:not(.aui-legacy-forms) .date-select,
+form.aui:not(.aui-legacy-forms) .field-group,
+form.aui:not(.aui-legacy-forms) .group { padding-top: 0px !important; padding-bottom: 0px !important; }
+.qf-field { padding: 0px 30px 0px 0; margin-bottom: 0px; clear: left; }
+#customfield_16100-single-select { max-width: 400px !important; }
 
 /* Worklog form - hide extra fields */
 #worklogForm > div:nth-child(13) > div:nth-child(3) { display: none; }
