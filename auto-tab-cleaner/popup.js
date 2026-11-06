@@ -94,6 +94,46 @@ document.getElementById("clear-archive").addEventListener("click", async () => {
   renderArchive();
 });
 
+async function exportArchive(format) {
+  const { archive } = await chrome.storage.local.get("archive");
+  const items = archive || [];
+  if (items.length === 0) return;
+
+  let content, mime;
+  if (format === "csv") {
+    const esc = v => `"${String(v).replace(/"/g, '""')}"`;
+    const pad = n => String(n).padStart(2, "0");
+    // Local time, "YYYY-MM-DD HH:MM:SS" - recognized as a date by Excel / Sheets
+    const fmt = ts => {
+      if (!ts) return "";
+      const d = new Date(ts);
+      return `${d.getFullYear()}-${pad(d.getMonth() + 1)}-${pad(d.getDate())} ${pad(d.getHours())}:${pad(d.getMinutes())}:${pad(d.getSeconds())}`;
+    };
+    const lines = items.map(i => [i.title || "", i.url || "", fmt(i.archivedAt)].map(esc).join(","));
+    // BOM so Excel reads UTF-8 (Polish characters) correctly
+    content = "\uFEFF" + ["Title,URL,Archived At", ...lines].join("\r\n");
+    mime = "text/csv;charset=utf-8";
+  } else {
+    const rows = items.map(i => ({
+      title: i.title || "",
+      url: i.url || "",
+      archivedAt: i.archivedAt ? new Date(i.archivedAt).toISOString() : null,
+    }));
+    content = JSON.stringify(rows, null, 2);
+    mime = "application/json";
+  }
+
+  const date = new Date().toISOString().slice(0, 10);
+  const a = document.createElement("a");
+  a.href = URL.createObjectURL(new Blob([content], { type: mime }));
+  a.download = `archived-tabs-${date}.${format}`;
+  a.click();
+  setTimeout(() => URL.revokeObjectURL(a.href), 1000);
+}
+
+document.getElementById("export-csv").addEventListener("click", () => exportArchive("csv"));
+document.getElementById("export-json").addEventListener("click", () => exportArchive("json"));
+
 async function renderArchive(filter = "") {
   const { archive } = await chrome.storage.local.get("archive");
   const list = document.getElementById("archive-list");

@@ -135,7 +135,11 @@
   <div id="archive-section">
     <div class="archive-header">
       <span>Archived tabs</span>
-      <button class="btn-small" id="clear-archive">Clear all</button>
+      <div style="display:flex;gap:4px;">
+        <button class="btn-small" id="export-csv" title="Export title + URL as CSV">CSV</button>
+        <button class="btn-small" id="export-json" title="Export title + URL as JSON">JSON</button>
+        <button class="btn-small" id="clear-archive">Clear all</button>
+      </div>
     </div>
     <div style="padding: 6px 16px;">
       <input type="text" id="archive-search" placeholder="Search..." style="width:100%;font-size:12px;">
