@@ -136,15 +136,32 @@ function injectAll(buckets) {
       `;
 
       tr.addEventListener('click', () => {
-        navigator.clipboard.writeText(b.epic).then(() => {
-          const cell = tr.querySelectorAll('td')[1];
-          cell.textContent = 'Copied!';
-          cell.style.color = '#2e7d52';
-          setTimeout(() => {
-            cell.textContent = b.epic;
-            cell.style.color = '#4fc3f7';
-          }, 1200);
-        });
+        const field = document.getElementById('customfield_16101-field');
+        if (!field) {
+          navigator.clipboard.writeText(b.epic);
+          return;
+        }
+
+        popup.style.display = 'none';
+        field.value = b.epic;
+        field.dispatchEvent(new Event('input', { bubbles: true }));
+        field.dispatchEvent(new KeyboardEvent('keyup', { bubbles: true }));
+        field.focus();
+
+        // poll for the suggestion with matching epic key and click it
+        let attempts = 0;
+        const timer = setInterval(() => {
+          attempts++;
+          const links = document.querySelectorAll('#customfield_16101-suggestions a[role="option"]');
+          for (const link of links) {
+            if (link.textContent.includes(b.epic)) {
+              link.click();
+              clearInterval(timer);
+              return;
+            }
+          }
+          if (attempts > 30) clearInterval(timer);
+        }, 100);
       });
 
       tbody.appendChild(tr);
