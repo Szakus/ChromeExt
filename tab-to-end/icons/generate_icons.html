@@ -1,0 +1,73 @@
+<!DOCTYPE html>
+<html>
+<body>
+<canvas id="c16" width="16" height="16"></canvas>
+<canvas id="c48" width="48" height="48"></canvas>
+<script>
+function draw(canvas) {
+  const s = canvas.width;
+  const ctx = canvas.getContext("2d");
+
+  // green background
+  ctx.fillStyle = "#2e7d52";
+  ctx.beginPath();
+  ctx.roundRect(0, 0, s, s, s * 0.2);
+  ctx.fill();
+
+  // 3 white lines (like a list)
+  ctx.fillStyle = "#fff";
+  const pad = s * 0.15;
+  const lineH = s * 0.11;
+  const gap = s * 0.07;
+  const lineW = s * 0.55;
+  [0, 1, 2].forEach(i => {
+    const y = pad + i * (lineH + gap);
+    ctx.beginPath();
+    ctx.roundRect(pad, y, lineW, lineH, lineH * 0.4);
+    ctx.fill();
+  });
+
+  // down-arrow badge in bottom-right
+  const cx = s * 0.72, cy = s * 0.72, r = s * 0.22;
+
+  // circle background
+  ctx.fillStyle = "#fff";
+  ctx.beginPath();
+  ctx.arc(cx, cy, r, 0, Math.PI * 2);
+  ctx.fill();
+
+  // arrow (stem + triangle)
+  ctx.fillStyle = "#2e7d52";
+  const aw = r * 0.38;  // stem width
+  const stemTop = cy - r * 0.52;
+  const stemBot = cy + r * 0.08;
+  const arrowHalfW = r * 0.68;
+  const arrowTip = cy + r * 0.6;
+
+  // stem
+  ctx.fillRect(cx - aw / 2, stemTop, aw, stemBot - stemTop);
+
+  // triangle
+  ctx.beginPath();
+  ctx.moveTo(cx - arrowHalfW, stemBot);
+  ctx.lineTo(cx + arrowHalfW, stemBot);
+  ctx.lineTo(cx, arrowTip);
+  ctx.closePath();
+  ctx.fill();
+}
+
+["c16","c48"].forEach(id => draw(document.getElementById(id)));
+
+document.querySelectorAll("canvas").forEach(c => {
+  const a = document.createElement("a");
+  a.download = `icon${c.width}.png`;
+  a.href = c.toDataURL();
+  a.textContent = `Download icon${c.width}.png`;
+  a.style.display = "block";
+  a.style.margin = "8px";
+  a.style.fontSize = "16px";
+  document.body.appendChild(a);
+});
+</script>
+</body>
+</html>
