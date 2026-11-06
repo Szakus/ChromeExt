@@ -8,16 +8,36 @@ async function load() {
   document.getElementById("domain").value = s.domain || "";
   document.getElementById("cssGlobal").value = s.cssGlobal ?? DEFAULT_CSS_GLOBAL;
   document.getElementById("cssCreate").value = s.cssCreate ?? DEFAULT_CSS_CREATE;
+  document.getElementById("bucketsJson").value = s.buckets ? JSON.stringify(s.buckets, null, 2) : "";
 }
 
 async function save(silent = false) {
   const { settings } = await chrome.storage.local.get("settings");
+
+  let buckets = (settings || {}).buckets || [];
+  const raw = document.getElementById("bucketsJson").value.trim();
+  const errEl = document.getElementById("buckets-error");
+  if (raw) {
+    try {
+      buckets = JSON.parse(raw);
+      if (!Array.isArray(buckets)) throw new Error("Must be a JSON array");
+      errEl.textContent = "";
+    } catch (e) {
+      errEl.textContent = "JSON error: " + e.message;
+      if (!silent) return;
+    }
+  } else {
+    buckets = [];
+    if (errEl) errEl.textContent = "";
+  }
+
   const updated = {
     ...(settings || {}),
     enabled: document.getElementById("enabled").checked,
     domain: document.getElementById("domain").value.trim(),
     cssGlobal: document.getElementById("cssGlobal").value,
     cssCreate: document.getElementById("cssCreate").value,
+    buckets,
   };
   await chrome.storage.local.set({ settings: updated });
 

@@ -99,6 +99,7 @@
   <div class="tab-bar">
     <button class="tab-btn active" data-tab="global">Global CSS</button>
     <button class="tab-btn" data-tab="create">Create Issue CSS</button>
+    <button class="tab-btn" data-tab="epics">Epicki</button>
   </div>
 
   <div class="tab-panel active" id="tab-global">
@@ -110,6 +111,16 @@
   <div class="tab-panel" id="tab-create">
     <div class="css-wrap">
       <textarea id="cssCreate" spellcheck="false"></textarea>
+    </div>
+  </div>
+
+  <div class="tab-panel" id="tab-epics">
+    <div class="css-wrap">
+      <div style="font-size:11px;color:#888;margin-bottom:6px;">
+        JSON - tablica obiektów z polami: <code style="color:#4fc3f7;">cat, epic, name, desc</code>
+      </div>
+      <textarea id="bucketsJson" spellcheck="false" style="height:260px;"></textarea>
+      <div id="buckets-error" style="font-size:11px;color:#e94560;margin-top:4px;min-height:16px;"></div>
     </div>
   </div>
 

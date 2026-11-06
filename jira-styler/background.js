@@ -20,53 +20,27 @@ async function injectStyles(tabId, url) {
     chrome.scripting.insertCSS({ target: { tabId }, css }).catch(() => {});
   }
 
-  if (isCreateIssue) {
-    chrome.scripting.executeScript({
-      target: { tabId },
-      func: applyCreateIssueDefaults
-    }).catch(() => {});
-  }
-
-  // inject MutationObserver on every Jira page to handle AJAX dialogs
   chrome.scripting.executeScript({
     target: { tabId },
-    func: injectObserver
+    func: injectAll,
+    args: [s.buckets || []]
   }).catch(() => {});
 }
 
-function applyCreateIssueDefaults() {
-  // Raised by OE -> Poland
-  const oe = document.getElementById("customfield_29709");
-  if (oe && !oe.value) oe.value = "141573";
+function injectAll(buckets) {
+  const BUCKETS = Array.isArray(buckets) && buckets.length ? buckets : [];
 
-  // Priority -> P3 Medium (AUI single-select, hidden <select multiple>)
-  const prio = document.getElementById("priority");
-  if (prio) {
-    const hasSelection = Array.from(prio.options).some(o => o.selected && o.value !== "10300");
-    if (!hasSelection) {
-      const p3 = Array.from(prio.options).find(o => o.text.trim() === "P3 Medium");
-      if (p3) {
-        p3.selected = true;
-        prio.dispatchEvent(new Event("change", { bubbles: true }));
-        const field = document.getElementById("priority-field");
-        if (field) field.value = "P3 Medium";
-        const icon = p3.dataset.icon;
-        if (icon) {
-          const img = document.querySelector("#priority-single-select .aui-ss-entity-icon");
-          if (img) img.src = icon;
-        }
-      }
-    }
-  }
-}
+  const CAT_COLORS = {
+    SmallChanges: '#2e7d52',
+    RUN:          '#c17d00',
+    CFO:          '#0052cc',
+    Other:        '#5e3a8c',
+    '-':          '#555',
+  };
 
-function injectObserver() {
-  if (window.__jiraStylerObserver) return;
-  window.__jiraStylerObserver = true;
-
-  const observer = new MutationObserver(() => {
+  function setupForm() {
     const oe = document.getElementById("customfield_29709");
-    if (!oe || oe.__jiraStylerDone) return;
+    if (!oe) return;
     oe.__jiraStylerDone = true;
 
     if (!oe.value) oe.value = "141573";
@@ -81,17 +55,152 @@ function injectObserver() {
           prio.dispatchEvent(new Event("change", { bubbles: true }));
           const field = document.getElementById("priority-field");
           if (field) field.value = "P3 Medium";
-          const icon = p3.dataset.icon;
-          if (icon) {
+          if (p3.dataset.icon) {
             const img = document.querySelector("#priority-single-select .aui-ss-entity-icon");
-            if (img) img.src = icon;
+            if (img) img.src = p3.dataset.icon;
           }
         }
       }
     }
-  });
 
-  observer.observe(document.body, { childList: true, subtree: true });
+    injectEpicHelper();
+  }
+
+  function injectEpicHelper() {
+    const hiddenSelect = document.getElementById('customfield_16101');
+    if (!hiddenSelect || hiddenSelect.__epicHelperDone) return;
+    hiddenSelect.__epicHelperDone = true;
+    const label = document.querySelector('label[for="customfield_16101-field"]');
+    if (!label) return;
+
+    const btn = document.createElement('a');
+    btn.textContent = 'Moje Epicki ▾';
+    btn.className = 'aui-button aui-button-link';
+    btn.style.cssText = 'margin-left:10px;vertical-align:middle;';
+
+    const popup = document.createElement('div');
+    popup.style.cssText = [
+      'display:none', 'position:fixed', 'z-index:99999',
+      'background:#1a1a2e', 'border:1px solid #0f3460', 'border-radius:6px',
+      'box-shadow:0 4px 20px rgba(0,0,0,.5)', 'min-width:640px',
+      'max-height:420px', 'overflow-y:auto', 'font-family:system-ui,sans-serif',
+    ].join(';');
+
+    const header = document.createElement('div');
+    header.style.cssText = [
+      'display:flex', 'justify-content:space-between', 'align-items:center',
+      'padding:10px 14px', 'background:#16213e',
+      'border-bottom:1px solid #0f3460', 'border-radius:6px 6px 0 0',
+      'position:sticky', 'top:0',
+    ].join(';');
+    header.innerHTML = `
+      <span style="font-size:13px;font-weight:600;color:#fff;">Moje Epicki - BTMEUR Buckets</span>
+      <span style="color:#888;cursor:pointer;font-size:16px;line-height:1;" id="__epic-close">&#x2715;</span>
+    `;
+    popup.appendChild(header);
+
+    const hint = document.createElement('div');
+    hint.style.cssText = 'padding:5px 14px;font-size:11px;color:#555;border-bottom:1px solid #0f3460;';
+    hint.textContent = 'Kliknij wiersz aby skopiowac numer epica';
+    popup.appendChild(hint);
+
+    const table = document.createElement('table');
+    table.style.cssText = 'width:100%;border-collapse:collapse;font-size:12px;';
+    table.innerHTML = `<thead><tr style="background:#0f3460;">
+      <th style="padding:6px 10px;text-align:left;color:#888;font-weight:normal;font-size:10px;text-transform:uppercase;letter-spacing:.5px;white-space:nowrap;">Kategoria</th>
+      <th style="padding:6px 10px;text-align:left;color:#888;font-weight:normal;font-size:10px;text-transform:uppercase;letter-spacing:.5px;white-space:nowrap;">Epic</th>
+      <th style="padding:6px 10px;text-align:left;color:#888;font-weight:normal;font-size:10px;text-transform:uppercase;letter-spacing:.5px;">Nazwa</th>
+      <th style="padding:6px 10px;text-align:left;color:#888;font-weight:normal;font-size:10px;text-transform:uppercase;letter-spacing:.5px;">Opis</th>
+    </tr></thead>`;
+
+    const tbody = document.createElement('tbody');
+    BUCKETS.forEach((b, i) => {
+      const tr = document.createElement('tr');
+      const bg = i % 2 === 0 ? '#1a1a2e' : '#16213e';
+      tr.style.cssText = `cursor:pointer;background:${bg};transition:background .1s;`;
+      tr.onmouseenter = () => { tr.style.background = '#0f3460'; };
+      tr.onmouseleave = () => { tr.style.background = bg; };
+
+      const color = CAT_COLORS[b.cat] || '#555';
+      const epicCell = document.createElement('td');
+      epicCell.style.cssText = 'padding:7px 10px;color:#4fc3f7;font-weight:700;white-space:nowrap;';
+      epicCell.textContent = b.epic;
+
+      tr.innerHTML = `
+        <td style="padding:7px 10px;">
+          <span style="background:${color};color:#fff;padding:2px 7px;border-radius:3px;font-size:10px;white-space:nowrap;">${b.cat}</span>
+        </td>
+        <td style="padding:7px 10px;color:#4fc3f7;font-weight:700;white-space:nowrap;">${b.epic}</td>
+        <td style="padding:7px 10px;color:#e0e0e0;">${b.name}</td>
+        <td style="padding:7px 10px;color:#888;font-size:11px;">${b.desc}</td>
+      `;
+
+      tr.addEventListener('click', () => {
+        navigator.clipboard.writeText(b.epic).then(() => {
+          const cell = tr.querySelectorAll('td')[1];
+          cell.textContent = 'Copied!';
+          cell.style.color = '#2e7d52';
+          setTimeout(() => {
+            cell.textContent = b.epic;
+            cell.style.color = '#4fc3f7';
+          }, 1200);
+        });
+      });
+
+      tbody.appendChild(tr);
+    });
+    table.appendChild(tbody);
+    popup.appendChild(table);
+    document.body.appendChild(popup);
+
+    btn.addEventListener('click', (e) => {
+      e.preventDefault();
+      e.stopPropagation();
+      if (popup.style.display !== 'none') {
+        popup.style.display = 'none';
+        return;
+      }
+      popup.style.display = 'block';
+      const rect = btn.getBoundingClientRect();
+      const popupW = 640;
+      const popupH = popup.offsetHeight;
+      let left = rect.left;
+      if (left + popupW > window.innerWidth - 10) left = window.innerWidth - popupW - 10;
+      const spaceBelow = window.innerHeight - rect.bottom - 8;
+      const top = spaceBelow >= popupH ? rect.bottom + 4 : rect.top - popupH - 4;
+      popup.style.left = Math.max(0, left) + 'px';
+      popup.style.top = Math.max(0, top) + 'px';
+    });
+
+    popup.querySelector('#__epic-close').addEventListener('click', (e) => {
+      e.stopPropagation();
+      popup.style.display = 'none';
+    });
+
+    document.addEventListener('click', (e) => {
+      if (!popup.contains(e.target) && e.target !== btn) popup.style.display = 'none';
+    });
+
+    document.addEventListener('keydown', (e) => {
+      if (e.key === 'Escape') popup.style.display = 'none';
+    });
+
+    // Insert after the hidden select, same pattern as "Assign to me" button
+    hiddenSelect.insertAdjacentElement('afterend', btn);
+  }
+
+  // Run immediately if form already in DOM
+  if (document.getElementById("customfield_29709")) setupForm();
+
+  // MutationObserver for AJAX dialogs
+  if (window.__jiraStylerObserver) return;
+  window.__jiraStylerObserver = true;
+
+  new MutationObserver(() => {
+    const oe = document.getElementById("customfield_29709");
+    if (!oe || oe.__jiraStylerDone) return;
+    setupForm();
+  }).observe(document.body, { childList: true, subtree: true });
 }
 
 chrome.tabs.onUpdated.addListener((tabId, changeInfo, tab) => {
